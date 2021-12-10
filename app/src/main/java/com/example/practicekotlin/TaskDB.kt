@@ -13,7 +13,7 @@ abstract class TaskDB : RoomDatabase(){
     companion object{
         fun getTaskDataBase(application: Application): TaskDB{
             val taskDB = Room.databaseBuilder(application,TaskDB::class.java,"TaskDB")
-                .allowMainThreadQueries()
+               // .allowMainThreadQueries()
                 .build()
             return taskDB
         }

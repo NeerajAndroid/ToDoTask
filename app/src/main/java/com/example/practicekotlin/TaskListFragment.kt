@@ -1,5 +1,6 @@
 package com.example.practicekotlin
 
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -10,8 +11,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.practicekotlin.di.AppComponent
 import com.neeraj.todo.task.databinding.FragmentTaskListBinding
 import com.neeraj.todo.task.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -24,10 +29,20 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class TaskListFragment : Fragment() {
-    private  val TAG = "Test"
+    private val TAG = "Test"
     lateinit var mainActivity: MainActivity
     lateinit var viewModel: TaskViewModel
-    lateinit var binding : FragmentTaskListBinding
+    lateinit var binding: FragmentTaskListBinding
+
+
+    /*@Inject
+    lateinit var task: Task*/
+
+    @Inject
+    lateinit var taskRepository: TaskRepository
+
+    @Inject
+    lateinit var application: Application
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -46,23 +61,22 @@ class TaskListFragment : Fragment() {
                 .commit()
         }
         initList()
+        TaskApp().appComponent.inject(this)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    fun initList() {
+        viewModel =
+            ViewModelProvider(mainActivity, TaskViewModelFactory(application, taskRepository)).get(
+                TaskViewModel::class.java
+            )
 
-    }
-
-    fun initList(){
-        viewModel = ViewModelProvider(mainActivity).get(TaskViewModel::class.java)
-        Log.i(TAG, "initList: ${viewModel.hashCode()}")
-        viewModel.getTaskLis().observe(mainActivity,  { taskList ->
-            if(taskList.isEmpty()){
+        viewModel.getTaskLis().observe(mainActivity, { taskList ->
+            if (taskList.isEmpty()) {
                 binding.tvNoItems.visibility = View.VISIBLE
                 binding.rvTaskList.visibility = View.GONE
-                binding.tvNoItems.text="No Task for Today"
-            }else{
+                binding.tvNoItems.text = "No Task for Today"
+            } else {
                 binding.rvTaskList.visibility = View.VISIBLE
                 binding.tvNoItems.visibility = View.GONE
                 binding.rvTaskList.layoutManager = LinearLayoutManager(binding.rvTaskList.context)
@@ -70,7 +84,6 @@ class TaskListFragment : Fragment() {
             }
 
         })
-
         //CoroutineScope(IO)
     }
 }
